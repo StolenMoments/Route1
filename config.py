@@ -15,6 +15,7 @@ CLI_CONFIGS = {
         "approval_patterns": [
             r"\(y/n\)",
             r"Continue\?",
+            r"Proceed\?",
         ],
     },
     "codex": {
@@ -23,6 +24,7 @@ CLI_CONFIGS = {
         "approval_patterns": [
             r"\(y/n\)",
             r"Continue\?",
+            r"Proceed\?",
         ],
     },
 }

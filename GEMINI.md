@@ -13,34 +13,34 @@
 ## 
 
 ## \# Jira — 이슈 읽기
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\parse\_issue.py [이슈키] --mode full
+python C:\Users\lee\tools\jira-rest\scripts\parse_issue.py [이슈키] --mode full
 
 ## \# Jira — 이슈 생성
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\jira\_write.py create --project [PROJECT] --type [TYPE] --title "[제목]"
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\jira\_write.py create --project [PROJECT] --type Bug --title "[제목]" --desc "[설명]" --priority High
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\jira_write.py create --project [PROJECT] --type [TYPE] --title "[제목]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\jira_write.py create --project [PROJECT] --type Bug --title "[제목]" --desc "[설명]" --priority High
 
 ## \# Jira — 이슈 수정
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\jira\_write.py update [이슈키] --status "[상태]" --labels "Gemini"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\jira_write.py update [이슈키] --status "[상태]" --labels "Gemini"
 
 ## \# Jira — 댓글 작성
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\jira\_write.py comment [이슈키] "[댓글내용]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\jira_write.py comment [이슈키] "[댓글내용]"
 
 ## \# Confluence — 검색
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py search "[검색어]"
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py search "[검색어]" --space [SPACE키]
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py search "[검색어]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py search "[검색어]" --space [SPACE키]
 
 ## \# Confluence — 페이지 읽기
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py get [페이지ID]
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py get --url "[페이지URL]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py get [페이지ID]
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py get --url "[페이지URL]"
 
 ## \# Confluence — 페이지 작성
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py create --space [SPACE키] --title "[제목]" --body "[마크다운내용]"
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py create --space [SPACE키] --title "[제목]" --body-file [파일경로]
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py create --space [SPACE키] --title "[제목]" --body "[마크다운내용]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py create --space [SPACE키] --title "[제목]" --body-file [파일경로]
 ## \# Confluence — 페이지 수정
 
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py update [페이지ID] --body "[새내용]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py update [페이지ID] --body "[새내용]"
 
-python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py update [페이지ID] --append "[추가내용]"
+python C:\\Users\\lee\\tools\\jira-rest\\scripts\\confluence.py update [페이지ID] --append "[추가내용]"
 
 ## \# Jira 티켓 내용대로 작업 진행 시, 신규 브랜치 (예시 브랜치명: feat\_DEV-15) 생성 후 작업할 것. 작업 완료 후 commit & push 진행할 것. Jira Ticket 상태 '진행 중' 으로 변경.
 

@@ -42,7 +42,7 @@ python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py update [페이
 
 python C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py update [페이지ID] --append "[추가내용]"
 
-## \# Jira 티켓 내용대로 작업 진행 시, 신규 브랜치 (예시 브랜치명: feat\_DEV-15) 생성 후 작업할 것. 작업 완료 후 commit & push 진행할 것. Jira Ticket 상태 '작업시작' 으로 변경.
+## \# Jira 티켓 내용대로 작업 진행 시, 신규 브랜치 (예시 브랜치명: feat\_DEV-15) 생성 후 작업할 것. 작업 완료 후 commit & push 진행할 것. Jira Ticket 상태 '진행 중' 으로 변경.
 
-## \# 작업 완료 후 JIRA 상태 '구현완료' 로 변경
+## \# 작업 완료 후 JIRA 상태 '검토 중' 로 변경
 

@@ -25,3 +25,7 @@ python "C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py" create --spa
 # Confluence — 페이지 수정
 python "C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py" update [페이지ID] --body "[새내용]"
 python "C:\\Users\\unkno\\tools\\jira-rest\\scripts\\confluence.py" update [페이지ID] --append "[추가내용]"
+
+
+## 작업 시작 시, 티켓 상태 '진행 중' 으로 변경
+## 작업 완료 후, 티켓 상태 '검토 중' 으로 변경

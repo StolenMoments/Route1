@@ -1,3 +1,4 @@
+import asyncio
 import json
 import unittest
 from typing import Any, Dict, List, Optional
@@ -14,9 +15,11 @@ class FakeWebSocket:
         self.messages: List[Dict[str, Any]] = []
 
     async def send_json(self, payload: Dict[str, Any]):
+        await asyncio.sleep(0)
         self.messages.append(payload)
 
     async def send(self, payload: str):
+        await asyncio.sleep(0)
         self.messages.append(json.loads(payload))
 
 

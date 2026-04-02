@@ -246,7 +246,12 @@ class WsHandler:
         try:
             await self._send_current_statuses(websocket)
 
-            async for raw_message in websocket:
+            message_stream = (
+                websocket.iter_text()
+                if hasattr(websocket, "iter_text")
+                else websocket
+            )
+            async for raw_message in message_stream:
                 try:
                     message = (
                         raw_message

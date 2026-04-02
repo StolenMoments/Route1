@@ -1,6 +1,6 @@
 import asyncio
 import unittest
-from typing import cast
+from typing import Any, Dict, List, Optional, cast
 from unittest.mock import patch
 
 from fastapi import WebSocket
@@ -21,6 +21,35 @@ class FakeManager:
         self.stop_calls += 1
 
 
+class FakePtyManager:
+    def __init__(
+        self,
+        name: str,
+        config: Dict[str, Any],
+        on_output,
+        on_approval_request,
+        on_status_change=None,
+    ):
+        self.name = name
+        self.config = dict(config)
+        self.on_output = on_output
+        self.on_approval_request = on_approval_request
+        self.on_status_change = on_status_change
+        self.status = "stopped"
+        self.cwd: Optional[str] = None
+        self.sent: List[str] = []
+
+    def start(self, cwd: str):
+        self.cwd = cwd
+        self.status = "running"
+
+    def stop(self):
+        self.status = "stopped"
+
+    def send(self, text: str):
+        self.sent.append(text)
+
+
 class FakeWsHandler:
     def __init__(self):
         self.cwd = "D:/workspace"
@@ -34,14 +63,6 @@ class FakeWsHandler:
     async def handle_connection(self, websocket):
         await asyncio.sleep(0)
         self.handled_websockets.append(websocket)
-
-
-class AcceptingWsHandler(FakeWsHandler):
-    async def handle_connection(self, websocket):
-        self.handled_websockets.append(websocket)
-        await websocket.accept()
-        await websocket.send_text("connected")
-        await websocket.close()
 
 
 class TestMain(unittest.IsolatedAsyncioTestCase):
@@ -80,15 +101,20 @@ class TestMainHttp(unittest.TestCase):
         self.assertIn("<!DOCTYPE html>", response.text)
         self.assertIn("<title>Route 1</title>", response.text)
 
-    def test_websocket_route_is_available(self):
-        fake_handler = AcceptingWsHandler()
+    def test_websocket_route_works_with_real_ws_handler(self):
+        real_handler = main.WsHandler(pty_manager_cls=FakePtyManager)
 
-        with patch.object(main, "ws_handler", fake_handler):
+        with patch.object(main, "ws_handler", real_handler):
             with TestClient(main.app) as client:
                 with client.websocket_connect("/ws") as websocket:
-                    self.assertEqual(websocket.receive_text(), "connected")
+                    first_message = websocket.receive_json()
+                    self.assertEqual(first_message["type"], "status")
+                    self.assertIn(first_message["target"], {"claude", "gemini", "codex"})
+                    self.assertEqual(first_message["status"], "running")
+                    websocket.send_json({"type": "focus", "target": "codex"})
+                    websocket.send_json({"type": "input", "target": None, "data": "connected"})
 
-        self.assertEqual(len(fake_handler.handled_websockets), 1)
+        self.assertEqual(real_handler.pty_managers["codex"].sent, ["connected"])
 
 
 if __name__ == "__main__":

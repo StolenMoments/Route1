@@ -63,19 +63,6 @@ class PtyManager:
 
         asyncio.run_coroutine_threadsafe(self.on_output(data), self.loop)
 
-    def _handle_expect_result(self, idx: int, pattern_count: int) -> bool:
-        eof_idx = pattern_count
-        timeout_idx = pattern_count + 1
-
-        if idx == eof_idx:  # pexpect.EOF
-            self._transition_to_error()
-            return False
-
-        if idx == timeout_idx:  # pexpect.TIMEOUT
-            return True
-
-        return True
-
     def start(self, cwd: str):
         self.cwd = cwd
         self._set_status(Status.STARTING)
@@ -103,22 +90,26 @@ class PtyManager:
         # We need to capture regular output as well as approval patterns.
         # We'll use a catch-all pattern '.+' to capture streaming output.
         approval_patterns = self.config.get("approval_patterns", [])
-        patterns = approval_patterns + [r'.+']
-        expect_patterns = patterns + [pexpect.EOF, pexpect.TIMEOUT]
+        all_patterns = approval_patterns + [r'.+', pexpect.EOF, pexpect.TIMEOUT]
+        eof_idx = len(approval_patterns) + 1
+        timeout_idx = len(approval_patterns) + 2
         
         while self.status == Status.RUNNING and not self._stop_event.is_set():
             try:
                 # Use a small timeout to allow checking self._stop_event periodically
-                idx = self.process.expect(expect_patterns, timeout=0.1)
-                
-                # Check for output data
+                idx = self.process.expect(all_patterns, timeout=0.1)
+
+                if idx == eof_idx:  # pexpect.EOF
+                    self._transition_to_error()
+                    break
+
+                if idx == timeout_idx:  # pexpect.TIMEOUT
+                    continue
+
                 data = self.process.after
                 if data:
                     self._handle_output_data(idx, approval_patterns, data)
 
-                if not self._handle_expect_result(idx, len(patterns)):
-                    break
-                    
             except pexpect.EOF:
                 self._transition_to_error()
                 break

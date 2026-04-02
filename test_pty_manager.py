@@ -52,9 +52,11 @@ def make_manager(auto_approve=False):
     approvals = []
 
     async def on_output(data):
+        await asyncio.sleep(0)
         outputs.append(data)
 
     async def on_approval_request(name, data):
+        await asyncio.sleep(0)
         approvals.append((name, data))
 
     manager = PtyManager(
@@ -103,6 +105,29 @@ class TestPtyManagerReadLoop(unittest.TestCase):
         self.assertEqual(outputs, [])
         self.assertEqual(approvals, [])
         self.assertEqual(manager.process.sent, ["y\n"])
+
+    def test_timeout_with_none_data_does_not_call_output(self):
+        manager, outputs, approvals = make_manager(auto_approve=False)
+        # idx 3 is TIMEOUT when one approval pattern is configured.
+        manager.process = FakeProcess(manager, idx=3, data=None)
+
+        with patch("pty_manager.asyncio.run_coroutine_threadsafe", side_effect=run_immediately):
+            manager._read_loop()
+
+        self.assertEqual(outputs, [])
+        self.assertEqual(approvals, [])
+
+    def test_eof_transitions_to_error(self):
+        manager, outputs, approvals = make_manager(auto_approve=False)
+        # idx 2 is EOF when one approval pattern is configured.
+        manager.process = FakeProcess(manager, idx=2, data="")
+
+        with patch("pty_manager.asyncio.run_coroutine_threadsafe", side_effect=run_immediately):
+            manager._read_loop()
+
+        self.assertEqual(manager.status, Status.ERROR)
+        self.assertEqual(outputs, [])
+        self.assertEqual(approvals, [])
 
 
 if __name__ == "__main__":

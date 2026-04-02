@@ -46,6 +46,36 @@ class PtyManager:
                     self.loop
                 )
 
+    def _transition_to_error(self):
+        self._set_status(Status.ERROR)
+        asyncio.run_coroutine_threadsafe(self._handle_error(), self.loop)
+
+    def _handle_output_data(self, idx: int, approval_patterns: list[str], data: str):
+        if idx < len(approval_patterns):
+            if self.config.get("auto_approve", False):
+                self.send("y\n")
+                return
+            asyncio.run_coroutine_threadsafe(
+                self.on_approval_request(self.name, data),
+                self.loop
+            )
+            return
+
+        asyncio.run_coroutine_threadsafe(self.on_output(data), self.loop)
+
+    def _handle_expect_result(self, idx: int, pattern_count: int) -> bool:
+        eof_idx = pattern_count
+        timeout_idx = pattern_count + 1
+
+        if idx == eof_idx:  # pexpect.EOF
+            self._transition_to_error()
+            return False
+
+        if idx == timeout_idx:  # pexpect.TIMEOUT
+            return True
+
+        return True
+
     def start(self, cwd: str):
         self.cwd = cwd
         self._set_status(Status.STARTING)
@@ -74,51 +104,28 @@ class PtyManager:
         # We'll use a catch-all pattern '.+' to capture streaming output.
         approval_patterns = self.config.get("approval_patterns", [])
         patterns = approval_patterns + [r'.+']
+        expect_patterns = patterns + [pexpect.EOF, pexpect.TIMEOUT]
         
         while self.status == Status.RUNNING and not self._stop_event.is_set():
             try:
                 # Use a small timeout to allow checking self._stop_event periodically
-                idx = self.process.expect(patterns + [pexpect.EOF, pexpect.TIMEOUT], timeout=0.1)
+                idx = self.process.expect(expect_patterns, timeout=0.1)
                 
                 # Check for output data
                 data = self.process.after
                 if data:
-                    # Determine if it's an approval request
-                    is_approval = False
-                    if idx < len(approval_patterns):
-                        is_approval = True
-                    
-                    # Send output data to callback
-                    asyncio.run_coroutine_threadsafe(self.on_output(data), self.loop)
-                    
-                    if is_approval:
-                        if self.config.get("auto_approve", False):
-                            self.send("y\n")
-                        else:
-                            asyncio.run_coroutine_threadsafe(
-                                self.on_approval_request(self.name, data), 
-                                self.loop
-                            )
-                
-                # Handle EOF
-                if idx == len(patterns): # pexpect.EOF
-                    self._set_status(Status.ERROR)
-                    asyncio.run_coroutine_threadsafe(self._handle_error(), self.loop)
+                    self._handle_output_data(idx, approval_patterns, data)
+
+                if not self._handle_expect_result(idx, len(patterns)):
                     break
                     
-                # Handle TIMEOUT (just continue the loop)
-                elif idx == len(patterns) + 1: # pexpect.TIMEOUT
-                    continue
-                    
             except pexpect.EOF:
-                self._set_status(Status.ERROR)
-                asyncio.run_coroutine_threadsafe(self._handle_error(), self.loop)
+                self._transition_to_error()
                 break
             except Exception:
                 # For any other unexpected errors, transition to error state
                 if self.status != Status.STOPPED:
-                    self._set_status(Status.ERROR)
-                    asyncio.run_coroutine_threadsafe(self._handle_error(), self.loop)
+                    self._transition_to_error()
                 break
 
     async def _handle_error(self):
